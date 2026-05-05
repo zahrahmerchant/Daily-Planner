@@ -67,10 +67,13 @@ function defaultCategories() {
 
 function createDefaultState() {
   return {
-    version: 2,
+    version: 3,
     categories: defaultCategories(),
     daily_tasks: {},
     planning: {},
+    app_meta: {
+      lastPreparedDate: null,
+    },
     water_log: {},
     water_goal_ml: DEFAULT_WATER_GOAL_ML,
     work_settings: {
@@ -98,6 +101,9 @@ function normalizeState(raw) {
   state.categories ||= defaultCategories();
   state.daily_tasks ||= {};
   state.planning ||= {};
+  state.app_meta ||= {
+    lastPreparedDate: null,
+  };
   state.water_log ||= {};
   state.water_goal_ml ||= DEFAULT_WATER_GOAL_ML;
   state.work_settings ||= {
@@ -169,6 +175,14 @@ function createDailyInstance(task) {
   };
 }
 
+function cloneDailyTask(task) {
+  return {
+    ...task,
+    id: uid(),
+    completed: false,
+  };
+}
+
 export function ensurePlan(state, dateKey) {
   state.planning[dateKey] ||= [];
   return state.planning[dateKey];
@@ -207,10 +221,21 @@ function findTaskById(state, taskId) {
 
 export function savePlanToDaily(state, dateKey) {
   const selected = ensurePlan(state, dateKey);
-  state.daily_tasks[dateKey] = selected
+  const plannedTasks = selected
     .map((taskId) => findTaskById(state, taskId))
     .filter(Boolean)
     .map(createDailyInstance);
+  const carried = ensureDailyTasks(state, dateKey).filter((task) => task.carried_forward);
+  const existingTaskKeys = new Set(carried.map((task) => task.taskId || task.name));
+  const merged = [...carried];
+
+  plannedTasks.forEach((task) => {
+    const taskKey = task.taskId || task.name;
+    if (existingTaskKeys.has(taskKey)) return;
+    merged.push(task);
+  });
+
+  state.daily_tasks[dateKey] = merged.slice(0, DAILY_LIMIT);
   saveState(state);
 }
 
@@ -234,6 +259,34 @@ export function updateDailyTask(state, dateKey, taskId, patch) {
   if (!task) return;
   Object.assign(task, patch);
   saveState(state);
+}
+
+export function prepareDailyTasks(state, dateKey) {
+  if (state.app_meta.lastPreparedDate === dateKey) return false;
+
+  const previousDateKey = addDays(dateKey, -1);
+  const previousTasks = ensureDailyTasks(state, previousDateKey);
+  const todayTasks = ensureDailyTasks(state, dateKey);
+  const existingTaskKeys = new Set(todayTasks.map((task) => task.taskId || task.name));
+  const incompleteTasks = previousTasks.filter((task) => !task.completed);
+  let didChange = false;
+
+  incompleteTasks.forEach((task) => {
+    const taskKey = task.taskId || task.name;
+    if (existingTaskKeys.has(taskKey) || todayTasks.length >= DAILY_LIMIT) return;
+    todayTasks.push({
+      ...cloneDailyTask(task),
+      carried_forward: true,
+      notes: task.notes || "",
+      scheduled_time: null,
+    });
+    existingTaskKeys.add(taskKey);
+    didChange = true;
+  });
+
+  state.app_meta.lastPreparedDate = dateKey;
+  saveState(state);
+  return didChange;
 }
 
 export function getWorkSettings(state) {

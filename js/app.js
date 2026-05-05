@@ -8,11 +8,11 @@ import {
   deleteLibraryTask,
   getCategories,
   getDailyLimit,
-  getDailyProgress,
   getDailyTasks,
   getGroceryList,
   getHighlightedTasks,
   getLowEnergyTask,
+  prepareDailyTasks,
   getWorkSettings,
   getTaskLibrary,
   getTomorrowKey,
@@ -72,6 +72,7 @@ const elements = {
   tomorrowLabel: document.querySelector("#tomorrowLabel"),
   selectionCount: document.querySelector("#selectionCount"),
   planGrid: document.querySelector("#planGrid"),
+  weeklySuggestionHint: document.querySelector("#weeklySuggestionHint"),
   saveTomorrowButton: document.querySelector("#saveTomorrowButton"),
   libraryBlocks: document.querySelector("#libraryBlocks"),
   openQuickAddButton: document.querySelector("#openQuickAddButton"),
@@ -143,6 +144,7 @@ function createTodayTask(task) {
             <span>${escapeHtml(task.category)}</span>
             <span>${task.estimated_time} min</span>
             <span>${task.scheduled_time || "Unscheduled"}</span>
+            ${task.carried_forward ? "<span>From yesterday</span>" : ""}
           </div>
           ${task.notes ? `<p class="task-note">Note: ${escapeHtml(task.notes)}</p>` : ""}
           <div class="task-inline-actions">
@@ -228,21 +230,27 @@ function renderTimeline(tasks) {
 }
 
 function renderToday() {
-  const tasks = getDailyTasks(state, today);
-  const progress = getDailyProgress(state, today);
-  elements.todayLabel.textContent = formatLongDate(today);
-  elements.progressSummary.textContent = `${progress.completed} / ${progress.total} done`;
-  elements.progressBar.style.width = `${progress.percent}%`;
-  elements.todayHint.textContent = progress.total
-    ? "Easy first, then medium, then heavy."
-    : "No tasks loaded for today yet. Use Plan tonight.";
+  const tasks = getDailyTasks(state, today).slice(0, getDailyLimit());
+  const completedCount = tasks.filter((task) => task.completed).length;
+  const progressPercent = tasks.length ? Math.round((completedCount / tasks.length) * 100) : 0;
+  const easyTasks = tasks.filter((task) => Number(task.estimated_time) <= 10);
+  const mediumTasks = tasks.filter((task) => Number(task.estimated_time) > 10);
 
-  elements.startHereList.innerHTML = tasks.slice(0, 2).length
-    ? tasks.slice(0, 2).map(createTodayTask).join("")
-    : '<div class="empty-state">Nothing here yet.</div>';
-  elements.nextList.innerHTML = tasks.slice(2).length
-    ? tasks.slice(2).map(createTodayTask).join("")
-    : '<div class="empty-state">No medium or heavy tasks queued.</div>';
+  elements.todayLabel.textContent = formatLongDate(today);
+  elements.progressSummary.textContent = `${completedCount} / ${tasks.length} done`;
+  elements.progressBar.style.width = `${progressPercent}%`;
+  elements.todayHint.textContent = tasks.length
+    ? "Easy tasks first. Keep today small and doable."
+    : "No tasks today. Plan tomorrow tonight.";
+
+  elements.startHereList.innerHTML = easyTasks.length
+    ? easyTasks.map(createTodayTask).join("")
+    : '<div class="empty-state">No easy tasks today. That is okay.</div>';
+  elements.nextList.innerHTML = mediumTasks.length
+    ? mediumTasks.map(createTodayTask).join("")
+    : tasks.length
+      ? '<div class="empty-state">Only light tasks today. Keep it simple.</div>'
+      : '<div class="empty-state">Nothing planned yet.</div>';
   renderTimeline(tasks);
 }
 
@@ -250,8 +258,10 @@ function renderPlan() {
   const limit = getDailyLimit();
   const selectedCount = getCategories().flatMap((category) => getTaskLibrary(state)[category]).filter((task) => isTaskSelected(state, tomorrow, task.id)).length;
   const highlighted = getHighlightedTasks(state, tomorrow);
+  const weeklySuggestions = getWeeklySuggestions(state, tomorrow);
   elements.tomorrowLabel.textContent = formatLongDate(tomorrow);
   elements.selectionCount.textContent = `${selectedCount} / ${limit}`;
+  elements.weeklySuggestionHint.textContent = weeklySuggestions[0] || "Pick only what you can realistically do tomorrow.";
   elements.planGrid.innerHTML = getCategories()
     .map((category) => {
       const tasks = getTaskLibrary(state)[category];
@@ -780,6 +790,7 @@ function wireEvents() {
   });
 }
 
+prepareDailyTasks(state, today);
 renderAll();
 wireEvents();
 startReminderLoop();
