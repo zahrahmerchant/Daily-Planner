@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description"
+    content="Life Planner is an offline-first PWA for daily execution, night-before planning, task systems, water, and groceries." />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./assets/icon-192.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./assets/icon-192.svg" />
+  <link rel="stylesheet" href="./styles.css" />
+  <title>Life Planner</title>
+</head>
+
+<body>
+  <svg aria-hidden="true" class="icon-sprite">
+    <symbol id="icon-sparkle" viewBox="0 0 24 24">
+      <path d="M12 2.75 14.32 8l5.18 2-5.18 2L12 17.25 9.68 12 4.5 10l5.18-2L12 2.75Z" fill="currentColor" />
+    </symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24">
+      <path d="M7.75 3.75v2.5M16.25 3.75v2.5M4.75 8.25h14.5M6.75 5.75h10.5A2 2 0 0 1 19.25 7.75v9.5a2 2 0 0 1-2 2H6.75a2 2 0 0 1-2-2v-9.5a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+    </symbol>
+    <symbol id="icon-moon" viewBox="0 0 24 24">
+      <path d="M14.4 3.95a7.95 7.95 0 1 0 5.65 13.58 8.7 8.7 0 0 1-10.98-10.98 7.9 7.9 0 0 0 5.33-2.6Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+    </symbol>
+    <symbol id="icon-today" viewBox="0 0 24 24">
+      <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" fill="none" stroke="currentColor" stroke-width="1.8" />
+      <path d="M12 7.5v5l3.2 1.9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+    </symbol>
+    <symbol id="icon-plan" viewBox="0 0 24 24">
+      <path d="M7.75 3.75v2.5M16.25 3.75v2.5M4.75 8.25h14.5M6.75 5.75h10.5A2 2 0 0 1 19.25 7.75v9.5a2 2 0 0 1-2 2H6.75a2 2 0 0 1-2-2v-9.5a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+      <path d="m9.25 13.25 1.75 1.75 3.75-4.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+    </symbol>
+    <symbol id="icon-library" viewBox="0 0 24 24">
+      <path d="M5.5 6.25A1.75 1.75 0 0 1 7.25 4.5h2a1.75 1.75 0 0 1 1.75 1.75v11.5a1.75 1.75 0 0 1-1.75 1.75h-2A1.75 1.75 0 0 1 5.5 17.75V6.25ZM13 5.5h2.25A1.75 1.75 0 0 1 17 7.25v10.5a1.75 1.75 0 0 1-1.75 1.75H13m0-14h5.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+    </symbol>
+    <symbol id="icon-life" viewBox="0 0 24 24">
+      <path d="M12 20.25c4.05 0 6.75-2.87 6.75-6.43 0-4.62-4.77-8.56-6.02-9.49a1.17 1.17 0 0 0-1.46 0c-1.25.93-6.02 4.87-6.02 9.49 0 3.56 2.7 6.43 6.75 6.43Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+    </symbol>
+  </svg>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><use href="#icon-sparkle" /></svg>
+        </div>
+        <div>
+        <h1>Life Planner</h1>
+        <p class="topbar-copy">Planner for action. Life for support.</p>
+        </div>
+      </div>
+      <button id="installButton" class="secondary-button" hidden>Install App</button>
+    </header>
+
+    <main class="layout">
+      <section id="todayView" class="screen-section">
+        <article class="hero">
+          <div>
+            <p id="todayLabel" class="date-label"></p>
+            <h2 id="progressSummary">0 / 0 done</h2>
+          </div>
+          <div class="progress-stack">
+            <div class="progress-track" aria-hidden="true">
+              <div id="progressBar" class="progress-fill"></div>
+            </div>
+            <p id="todayHint" class="helper-text"></p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="section-label">Today</p>
+              <h3>Time Blocks</h3>
+            </div>
+          </div>
+          <div class="library-row reminder-row">
+            <label>
+              <span class="field-label">Work Starts</span>
+              <input id="workStartInput" type="time" />
+            </label>
+            <label>
+              <span class="field-label">Work Ends</span>
+              <input id="workEndInput" type="time" />
+            </label>
+            <button id="saveWorkHoursButton" class="secondary-button" type="button">Save Hours</button>
+          </div>
+          <p id="scheduleHint" class="helper-text"></p>
+          <p id="scheduleBanner" class="helper-text" hidden></p>
+          <div id="timelineView" class="timeline-grid"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="section-label">Today</p>
+              <h3>Start Here</h3>
+            </div>
+          </div>
+          <div id="startHereList" class="task-stack"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="section-label">Today</p>
+              <h3>Next</h3>
+            </div>
+          </div>
+          <div id="nextList" class="task-stack"></div>
+        </article>
+
+        <div class="dual-actions">
+          <button id="todayPlanButton" class="secondary-button" type="button"><span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#icon-calendar" /></svg></span><span>Plan Tomorrow</span></button>
+          <button id="lowEnergyButton" class="primary-button" type="button"><span class="button-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#icon-moon" /></svg></span><span>I'm tired</span></button>
+        </div>
+      </section>
+
+      <section id="planView" class="screen-section" hidden>
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="section-label">Plan</p>
+              <h2>Plan Tomorrow</h2>
+              <p id="tomorrowLabel" class="helper-text"></p>
+            </div>
+            <div class="selection-pill">
+              <strong id="selectionCount">0 / 5</strong>
+            </div>
+          </div>
+          <div id="planGrid" class="plan-grid"></div>
+          <div class="sticky-footer-action">
+            <button id="saveTomorrowButton" class="primary-button" type="button">Save for Tomorrow</button>
+          </div>
+        </article>
+      </section>
+
+      <section id="libraryView" class="screen-section" hidden>
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="section-label">Library</p>
+              <h2>Task Library</h2>
+            </div>
+            <button id="openQuickAddButton" class="secondary-button" type="button">Quick Add</button>
+          </div>
+          <div id="libraryBlocks" class="library-screen"></div>
+        </article>
+      </section>
+
+        <section id="lifeView" class="screen-section" hidden>
+          <article class="card">
+            <div class="card-head">
+              <div>
+                <p class="section-label">Life</p>
+                <h2>Water Today</h2>
+              </div>
+              <div class="selection-pill">
+                <strong id="waterProgressLabel">0 / 3L</strong>
+              </div>
+            </div>
+            <div class="library-row reminder-row">
+              <label>
+                <span class="field-label">Daily Goal (L)</span>
+                <input id="waterGoalInput" type="text" inputmode="decimal" placeholder="3.0" />
+              </label>
+              <button id="saveWaterGoalButton" class="secondary-button" type="button">Save Goal</button>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div id="waterProgressBar" class="progress-fill"></div>
+            </div>
+          <p id="waterHint" class="helper-text"></p>
+          <p id="reminderBanner" class="helper-text" hidden></p>
+          <div class="water-actions">
+            <button class="secondary-button water-add" data-amount="250" type="button">+250</button>
+            <button class="secondary-button water-add" data-amount="500" type="button">+500</button>
+            <button class="secondary-button water-add" data-amount="750" type="button">+750</button>
+            <button id="openCustomWaterButton" class="secondary-button" type="button">Custom</button>
+          </div>
+          <div id="waterHistory" class="task-stack"></div>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="section-label">Life</p>
+              <h2>Reminders</h2>
+            </div>
+            <button id="enableNotificationsButton" class="secondary-button" type="button">Enable Alerts</button>
+          </div>
+          <p id="notificationStatus" class="helper-text"></p>
+          <div class="library-row reminder-row">
+            <label>
+              <span class="field-label">Water Reminder</span>
+              <select id="waterReminderInterval">
+                <option value="60">Every 1 hour</option>
+                <option value="120">Every 2 hours</option>
+                <option value="180">Every 3 hours</option>
+                <option value="0">Off</option>
+              </select>
+            </label>
+            <label>
+              <span class="field-label">Plan Reminder</span>
+              <select id="planReminderHour">
+                <option value="19">7:00 PM</option>
+                <option value="20">8:00 PM</option>
+                <option value="21">9:00 PM</option>
+                <option value="0">Off</option>
+              </select>
+            </label>
+          </div>
+          <p class="helper-text">Reminders work locally in this browser or installed PWA while the app is open.</p>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <p class="section-label">Life</p>
+              <h2>Grocery List</h2>
+            </div>
+            <button id="addGroceryButton" class="secondary-button" type="button">Add Item</button>
+          </div>
+          <div id="groceryList" class="grocery-groups"></div>
+          <div class="sticky-footer-action">
+            <button id="toggleShoppingModeButton" class="primary-button" type="button">Start Shopping Mode</button>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Bottom navigation">
+    <button class="nav-button is-active" data-screen="today" type="button"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#icon-today" /></svg></span><span>Today</span></button>
+    <button class="nav-button" data-screen="plan" type="button"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#icon-plan" /></svg></span><span>Plan</span></button>
+    <button class="nav-button" data-screen="library" type="button"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#icon-library" /></svg></span><span>Library</span></button>
+    <button class="nav-button" data-screen="life" type="button"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><use href="#icon-life" /></svg></span><span>Life</span></button>
+  </nav>
+
+  <dialog id="quickAddDialog" class="dialog-shell">
+    <form method="dialog" class="dialog-card">
+      <div class="card-head">
+        <div>
+          <p class="section-label">Quick Add</p>
+          <h3>Add Task</h3>
+        </div>
+        <button class="secondary-button" value="cancel">Close</button>
+      </div>
+      <div class="dialog-body">
+        <label>
+          <span class="field-label">Task</span>
+          <input id="quickTaskInput" type="text" placeholder="wash clothes" />
+        </label>
+        <label>
+          <span class="field-label">Category</span>
+          <select id="quickCategory"></select>
+        </label>
+        <label>
+          <span class="field-label">Notes</span>
+          <textarea id="quickNote" rows="4" placeholder="Optional reminder"></textarea>
+        </label>
+        <p id="quickParsePreview" class="helper-text"></p>
+        <button id="quickAddSubmit" class="primary-button" type="button">Add</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="taskDialog" class="dialog-shell">
+    <form method="dialog" class="dialog-card">
+      <div class="card-head">
+        <div>
+          <p class="section-label" id="taskDetailCategory"></p>
+          <h3 id="taskDetailTitle"></h3>
+        </div>
+        <button class="secondary-button" value="cancel">Close</button>
+      </div>
+      <div class="dialog-body">
+        <div id="taskDetailMeta" class="task-detail-meta"></div>
+        <div>
+          <p class="field-label">Steps</p>
+          <ul id="taskDetailSteps" class="steps-list"></ul>
+        </div>
+        <div>
+          <p class="field-label">Library Notes</p>
+          <p id="taskDetailLibraryNotes" class="helper-text"></p>
+        </div>
+        <label>
+          <span class="field-label">Today's Note</span>
+          <textarea id="taskInstanceNotes" rows="4" placeholder="Add a note for this task today"></textarea>
+        </label>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="lowEnergyDialog" class="dialog-shell">
+    <form method="dialog" class="dialog-card low-energy-dialog">
+      <div class="dialog-body">
+        <p class="section-label">Low Energy Mode</p>
+        <h2>Let's just do this</h2>
+        <div id="lowEnergyContent" class="task-stack"></div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="customWaterDialog" class="dialog-shell">
+    <form method="dialog" class="dialog-card">
+      <div class="card-head">
+        <div>
+          <p class="section-label">Water</p>
+          <h3>Add Custom Amount</h3>
+        </div>
+        <button class="secondary-button" value="cancel">Close</button>
+      </div>
+      <div class="dialog-body">
+        <label>
+          <span class="field-label">Amount (ml)</span>
+          <input id="customWaterInput" type="text" inputmode="numeric" placeholder="300" />
+        </label>
+        <button id="saveCustomWaterButton" class="primary-button" type="button">Add Water</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="groceryDialog" class="dialog-shell">
+    <form method="dialog" class="dialog-card">
+      <div class="card-head">
+        <div>
+          <p class="section-label">Groceries</p>
+          <h3>Add Item</h3>
+        </div>
+        <button class="secondary-button" value="cancel">Close</button>
+      </div>
+      <div class="dialog-body">
+        <label>
+          <span class="field-label">Item</span>
+          <input id="groceryNameInput" type="text" placeholder="Milk" />
+        </label>
+        <label>
+          <span class="field-label">Category</span>
+          <input id="groceryCategoryInput" type="text" placeholder="Dairy" />
+        </label>
+        <button id="saveGroceryButton" class="primary-button" type="button">Add Item</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+
+</html>
